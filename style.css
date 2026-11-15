@@ -6,7 +6,6 @@
 
 :root {
     --void: #05020a;
-    --card: rgba(11, 5, 20, 0.86);
     --violet: #a020f0;
     --lilac: #c084fc;
     --text: #f3ecfc;
@@ -18,7 +17,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Syne', system-ui, sans-serif;
+    font-family: 'Chakra Petch', system-ui, sans-serif;
 }
 
 body {
@@ -27,16 +26,14 @@ body {
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    overflow: hidden;
-
-    /* dark overlay on top of your gif, solid fallback if it fails to load */
+    overflow-x: hidden;
     background:
         linear-gradient(rgba(5, 2, 10, 0.8), rgba(5, 2, 10, 0.8)),
         url('purple-aesthetic.gif') no-repeat center center / cover,
         var(--void);
 }
 
-/* two slow drifting glows behind the card */
+/* drifting glows */
 body::before,
 body::after {
     content: '';
@@ -44,23 +41,16 @@ body::after {
     border-radius: 50%;
     filter: blur(90px);
     pointer-events: none;
-    z-index: 0;
 }
 
 body::before {
-    width: 45vmax;
-    height: 45vmax;
-    left: -15vmax;
-    top: -15vmax;
+    width: 45vmax; height: 45vmax; left: -15vmax; top: -15vmax;
     background: radial-gradient(circle, rgba(138, 43, 226, 0.45), transparent 65%);
     animation: driftA 16s ease-in-out infinite alternate;
 }
 
 body::after {
-    width: 40vmax;
-    height: 40vmax;
-    right: -12vmax;
-    bottom: -14vmax;
+    width: 40vmax; height: 40vmax; right: -12vmax; bottom: -14vmax;
     background: radial-gradient(circle, rgba(192, 132, 252, 0.28), transparent 65%);
     animation: driftB 20s ease-in-out infinite alternate;
 }
@@ -73,28 +63,20 @@ body::after {
     isolation: isolate;
     width: 100%;
     max-width: 460px;
-    min-height: 360px;
-    padding: 34px 40px 40px;
-
+    padding: 24px 40px 34px;
     color: var(--text);
     border-radius: 18px;
     box-shadow: 0 0 80px rgba(160, 32, 240, 0.22), 0 30px 60px rgba(0, 0, 0, 0.6);
-
     animation: cardIn 0.9s var(--ease) both;
 }
 
-/* the one memorable thing: a light that circles the card edge */
 .wrapper::before {
     content: '';
     position: absolute;
     inset: -2px;
     z-index: -1;
     border-radius: 20px;
-    background: conic-gradient(from var(--angle),
-            transparent 0 55%,
-            var(--violet) 75%,
-            var(--lilac) 88%,
-            transparent 100%);
+    background: conic-gradient(from var(--angle), transparent 0 55%, var(--violet) 75%, var(--lilac) 88%, transparent 100%);
     animation: spin 5s linear infinite;
 }
 
@@ -104,32 +86,47 @@ body::after {
     inset: 0;
     z-index: -1;
     border-radius: 18px;
-    background: var(--card);
+    background: rgba(11, 5, 20, 0.88);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
 }
 
 .wrapper h1 {
-    font-size: 40px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
     text-align: center;
-    margin-bottom: 20px;
-
-    color: var(--text);
-    background: linear-gradient(90deg, #ffffff, var(--lilac), #ffffff);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: titleSweep 6s linear infinite;
+    margin-bottom: 14px;
 }
 
-/* single page-load sequence: children reveal in order */
-.wrapper form > * {
+.rv {
     animation: reveal 0.7s var(--ease) both;
     animation-delay: calc(0.25s + var(--i) * 0.1s);
 }
+
+/* ---------- Character ---------- */
+
+.mascot {
+    display: block;
+    width: 110px;
+    margin: 0 auto 6px;
+    --px: 0px;
+    --py: 0px;
+}
+
+.pupil {
+    transform: translate(var(--px), var(--py));
+    transition: transform 0.18s ease-out;
+}
+
+.hand {
+    transform: translateY(70px);
+    transition: transform 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.hand.r { transition-delay: 0.06s; }
+
+.mascot.cover .hand { transform: translateY(0); }
 
 /* ---------- Inputs ---------- */
 
@@ -137,38 +134,28 @@ body::after {
     position: relative;
     width: 100%;
     height: 52px;
-    margin: 25px 0;
+    margin: 18px 0;
 }
 
 .input-box input {
     width: 100%;
     height: 100%;
     padding: 0 50px 0 22px;
-
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(192, 132, 252, 0.22);
     outline: none;
     border-radius: 40px;
-
     font-size: 16px;
     color: var(--text);
     transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
 }
 
-.input-box input::placeholder {
-    color: var(--muted);
-    transition: transform 0.3s var(--ease), opacity 0.3s;
-}
+.input-box input::placeholder { color: var(--muted); }
 
 .input-box input:focus {
     background: rgba(160, 32, 240, 0.08);
     border-color: var(--lilac);
     box-shadow: 0 0 0 4px rgba(160, 32, 240, 0.18), 0 0 26px rgba(160, 32, 240, 0.35);
-}
-
-.input-box input:focus::placeholder {
-    opacity: 0.5;
-    transform: translateX(8px);
 }
 
 .input-box > i,
@@ -179,17 +166,11 @@ body::after {
     transform: translateY(-50%);
     font-size: 20px;
     color: var(--muted);
-    transition: color 0.3s, transform 0.3s var(--ease);
+    transition: color 0.3s;
 }
 
 .input-box:focus-within > i,
-.input-box:focus-within .toggle {
-    color: var(--lilac);
-}
-
-.input-box:focus-within > i {
-    transform: translateY(-50%) scale(1.15);
-}
+.input-box:focus-within .toggle { color: var(--lilac); }
 
 .input-box .toggle {
     right: 14px;
@@ -200,14 +181,8 @@ body::after {
     line-height: 1;
 }
 
-.input-box .toggle:hover {
-    color: #ffffff;
-}
-
-.input-box .toggle:focus-visible {
-    outline: 2px solid var(--lilac);
-    border-radius: 50%;
-}
+.input-box .toggle:hover { color: #fff; }
+.input-box .toggle:focus-visible { outline: 2px solid var(--lilac); border-radius: 50%; }
 
 /* ---------- Button ---------- */
 
@@ -216,26 +191,21 @@ body::after {
     overflow: hidden;
     width: 100%;
     height: 48px;
-
     border: none;
     outline: none;
     border-radius: 12px;
-
     cursor: pointer;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 17px;
     letter-spacing: 0.04em;
-    color: #ffffff;
-
+    color: #fff;
     background: linear-gradient(110deg, #4c0a82, #7b1fd1, #a020f0, #7b1fd1, #4c0a82);
     background-size: 300% 100%;
     box-shadow: 0 8px 24px rgba(160, 32, 240, 0.35);
-
     animation: flow 6s linear infinite;
     transition: transform 0.25s var(--ease), box-shadow 0.25s;
 }
 
-/* light sweep across the button on hover */
 .submit button::after {
     content: '';
     position: absolute;
@@ -253,23 +223,11 @@ body::after {
     box-shadow: 0 12px 34px rgba(160, 32, 240, 0.6);
 }
 
-.submit button:hover::after {
-    left: 130%;
-}
+.submit button:hover::after { left: 130%; }
+.submit button:active { transform: scale(0.98); }
+.submit button:focus-visible { box-shadow: 0 0 0 3px var(--void), 0 0 0 5px var(--lilac); }
 
-.submit button:active {
-    transform: translateY(0) scale(0.98);
-}
-
-.submit button:focus-visible {
-    box-shadow: 0 0 0 3px var(--void), 0 0 0 5px var(--lilac);
-}
-
-/* loading state (added by the script on submit) */
-.submit button.loading {
-    pointer-events: none;
-    color: transparent;
-}
+.submit button.loading { pointer-events: none; color: transparent; }
 
 .submit button.loading::before {
     content: '';
@@ -280,52 +238,55 @@ body::after {
     height: 20px;
     margin: -10px 0 0 -10px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #ffffff;
+    border-top-color: #fff;
     border-radius: 50%;
     animation: rotate 0.7s linear infinite;
+}
+
+/* ---------- Mini game ---------- */
+
+.game {
+    margin-top: 26px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(192, 132, 252, 0.18);
+}
+
+.game-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.game-head b { color: var(--lilac); }
+
+#game {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(192, 132, 252, 0.18);
+    cursor: crosshair;
+    touch-action: manipulation;
 }
 
 /* ---------- Keyframes ---------- */
 
 @keyframes cardIn {
     from { opacity: 0; transform: scale(0.94); filter: blur(10px); }
-    to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+    to   { opacity: 1; transform: scale(1); filter: blur(0); }
 }
-
-@keyframes reveal {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes spin {
-    to { --angle: 360deg; }
-}
-
-@keyframes titleSweep {
-    to { background-position: -200% 0; }
-}
-
-@keyframes flow {
-    to { background-position: -300% 0; }
-}
-
-@keyframes rotate {
-    to { transform: rotate(360deg); }
-}
-
-@keyframes driftA {
-    to { transform: translate(14vmax, 10vmax) scale(1.15); }
-}
-
-@keyframes driftB {
-    to { transform: translate(-12vmax, -8vmax) scale(1.1); }
-}
-
-/* ---------- Small screens / reduced motion ---------- */
+@keyframes reveal { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes spin   { to { --angle: 360deg; } }
+@keyframes flow   { to { background-position: -300% 0; } }
+@keyframes rotate { to { transform: rotate(360deg); } }
+@keyframes driftA { to { transform: translate(14vmax, 10vmax) scale(1.15); } }
+@keyframes driftB { to { transform: translate(-12vmax, -8vmax) scale(1.1); } }
 
 @media (max-width: 480px) {
-    .wrapper { padding: 28px 24px 32px; }
-    .wrapper h1 { font-size: 34px; }
+    .wrapper { padding: 20px 22px 28px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

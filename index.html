@@ -10,7 +10,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -18,17 +18,31 @@
 <body>
 
 <div class="wrapper">
+
+    <svg id="mascot" class="mascot rv" style="--i:0" viewBox="0 0 120 120" role="img"
+         aria-label="Character that watches you type and covers its eyes for the password">
+        <circle cx="60" cy="66" r="46" fill="#3b0f6b" stroke="#a020f0" stroke-width="2"/>
+        <ellipse cx="60" cy="68" rx="33" ry="32" fill="#f4d3bb"/>
+        <circle cx="47" cy="62" r="9" fill="#fff"/>
+        <circle cx="73" cy="62" r="9" fill="#fff"/>
+        <circle class="pupil" cx="47" cy="62" r="4.5" fill="#1b0a2e"/>
+        <circle class="pupil" cx="73" cy="62" r="4.5" fill="#1b0a2e"/>
+        <path d="M52 82q8 6 16 0" fill="none" stroke="#8a4b3a" stroke-width="2.5" stroke-linecap="round"/>
+        <ellipse class="hand" cx="47" cy="62" rx="16" ry="13" fill="#f4d3bb" stroke="#3b0f6b" stroke-width="2"/>
+        <ellipse class="hand r" cx="73" cy="62" rx="16" ry="13" fill="#f4d3bb" stroke="#3b0f6b" stroke-width="2"/>
+    </svg>
+
     <form action="/login" method="post">
 
-        <h1 style="--i:0">Login</h1>
+        <h1 class="rv" style="--i:1">Login</h1>
 
-        <div class="input-box" style="--i:1">
-            <input type="text" name="username" placeholder="Username"
+        <div class="input-box rv" style="--i:2">
+            <input type="text" id="username" name="username" placeholder="Username"
                    aria-label="Username" autocomplete="username" required>
             <i class='bx bxs-user' aria-hidden="true"></i>
         </div>
 
-        <div class="input-box" style="--i:2">
+        <div class="input-box rv" style="--i:3">
             <input type="password" id="password" name="password" placeholder="Password"
                    aria-label="Password" autocomplete="current-password" required>
             <button type="button" class="toggle" aria-label="Show password">
@@ -36,33 +50,121 @@
             </button>
         </div>
 
-        <div class="submit" style="--i:3">
+        <div class="submit rv" style="--i:4">
             <button type="submit">Log in</button>
         </div>
 
     </form>
+
+    <div class="game rv" style="--i:5">
+        <div class="game-head">
+            <span>Pop the orbs</span>
+            <span>Score <b id="score">0</b> &nbsp; Best <b id="best">0</b></span>
+        </div>
+        <canvas id="game" width="380" height="110" role="img" aria-label="Orb popping mini game"></canvas>
+    </div>
+
 </div>
 
 <script>
-    const form = document.querySelector('form');
-    const pw = document.getElementById('password');
-    const toggle = document.querySelector('.toggle');
-    const submitBtn = document.querySelector('.submit button');
+    const $ = (s) => document.querySelector(s);
+    const face = $('#mascot'), user = $('#username'), pw = $('#password');
+    const toggle = $('.toggle'), btn = $('.submit button');
+    const clamp = (v, m) => Math.max(-m, Math.min(m, v));
+    const look = (x, y) => {
+        face.style.setProperty('--px', x + 'px');
+        face.style.setProperty('--py', y + 'px');
+    };
 
-    // Show / hide password
+    // Idle: eyes follow the mouse
+    document.addEventListener('pointermove', (e) => {
+        if (document.activeElement === user || document.activeElement === pw) return;
+        const r = face.getBoundingClientRect();
+        look(clamp((e.clientX - r.left - r.width / 2) / 30, 4),
+             clamp((e.clientY - r.top - r.height / 2) / 30, 3));
+    });
+
+    // Username: eyes track the caret across the field
+    const watchTyping = () => {
+        const t = Math.min(user.selectionStart ?? user.value.length, 24) / 24;
+        look(-4 + 8 * t, 3);
+    };
+    ['focus', 'input', 'click', 'keyup'].forEach((ev) => user.addEventListener(ev, watchTyping));
+    user.addEventListener('blur', () => look(0, 0));
+
+    // Password: cover eyes (or look away if the password is visible)
+    const syncCover = () => {
+        const focused = document.activeElement === pw;
+        const hidden = pw.type === 'password';
+        face.classList.toggle('cover', focused && hidden);
+        if (focused && !hidden) look(-4, -2);
+    };
+    pw.addEventListener('focus', syncCover);
+    pw.addEventListener('blur', () => { face.classList.remove('cover'); look(0, 0); });
+
     toggle.addEventListener('click', () => {
         const show = pw.type === 'password';
         pw.type = show ? 'text' : 'password';
         toggle.querySelector('i').className = show ? 'bx bx-hide' : 'bx bx-show';
         toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        pw.focus();
+        syncCover();
     });
 
     // Loading animation demo. Remove preventDefault once this posts to a real backend.
-    form.addEventListener('submit', (e) => {
+    $('form').addEventListener('submit', (e) => {
         e.preventDefault();
-        submitBtn.classList.add('loading');
-        setTimeout(() => submitBtn.classList.remove('loading'), 1800);
+        btn.classList.add('loading');
+        setTimeout(() => btn.classList.remove('loading'), 1800);
     });
+
+    // Mini game: pop the orbs (small orbs are worth 3)
+    const cv = $('#game'), g = cv.getContext('2d'), W = cv.width, H = cv.height;
+    let orbs = [], pops = [], score = 0, best = 0, lastSpawn = 0;
+
+    cv.addEventListener('pointerdown', (e) => {
+        const b = cv.getBoundingClientRect();
+        const x = (e.clientX - b.left) * W / b.width, y = (e.clientY - b.top) * H / b.height;
+        const i = orbs.findIndex((o) => Math.hypot(o.x - x, o.y - y) < o.r + 6);
+        if (i < 0) return;
+        const o = orbs.splice(i, 1)[0];
+        pops.push({ x: o.x, y: o.y, r: o.r, a: 1 });
+        score += o.r < 16 ? 3 : 1;
+        best = Math.max(best, score);
+        $('#score').textContent = score;
+        $('#best').textContent = best;
+    });
+
+    (function loop(t) {
+        g.clearRect(0, 0, W, H);
+        if (t - lastSpawn > 650) {
+            const r = 10 + Math.random() * 14;
+            orbs.push({ x: r + Math.random() * (W - 2 * r), y: H + r, r, vy: 0.5 + Math.random() * 1.1, ph: Math.random() * 6 });
+            lastSpawn = t;
+        }
+        orbs = orbs.filter((o) => o.y > -o.r);
+        g.shadowColor = '#a020f0';
+        g.shadowBlur = 14;
+        for (const o of orbs) {
+            o.y -= o.vy;
+            o.x += Math.sin(t / 500 + o.ph) * 0.4;
+            g.fillStyle = `hsla(${270 + o.r * 2}, 90%, 62%, 0.85)`;
+            g.beginPath();
+            g.arc(o.x, o.y, o.r, 0, 7);
+            g.fill();
+        }
+        g.shadowBlur = 0;
+        pops = pops.filter((p) => p.a > 0);
+        for (const p of pops) {
+            g.strokeStyle = `rgba(192,132,252,${p.a})`;
+            g.lineWidth = 2;
+            g.beginPath();
+            g.arc(p.x, p.y, p.r + (1 - p.a) * 30, 0, 7);
+            g.stroke();
+            p.a -= 0.05;
+        }
+        requestAnimationFrame(loop);
+    })(0);
 </script>
 
 </body>
