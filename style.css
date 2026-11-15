@@ -1,8 +1,24 @@
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+:root {
+    --void: #05020a;
+    --card: rgba(11, 5, 20, 0.86);
+    --violet: #a020f0;
+    --lilac: #c084fc;
+    --text: #f3ecfc;
+    --muted: #9d8ab5;
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: fantasy;
+    font-family: 'Syne', system-ui, sans-serif;
 }
 
 body {
@@ -10,92 +26,312 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding: 20px;
+    overflow: hidden;
 
-    background: url('purple-aesthetic.gif') no-repeat center center;
-    background-size: cover;
+    /* dark overlay on top of your gif, solid fallback if it fails to load */
+    background:
+        linear-gradient(rgba(5, 2, 10, 0.8), rgba(5, 2, 10, 0.8)),
+        url('purple-aesthetic.gif') no-repeat center center / cover,
+        var(--void);
 }
 
+/* two slow drifting glows behind the card */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+body::before {
+    width: 45vmax;
+    height: 45vmax;
+    left: -15vmax;
+    top: -15vmax;
+    background: radial-gradient(circle, rgba(138, 43, 226, 0.45), transparent 65%);
+    animation: driftA 16s ease-in-out infinite alternate;
+}
+
+body::after {
+    width: 40vmax;
+    height: 40vmax;
+    right: -12vmax;
+    bottom: -14vmax;
+    background: radial-gradient(circle, rgba(192, 132, 252, 0.28), transparent 65%);
+    animation: driftB 20s ease-in-out infinite alternate;
+}
+
+/* ---------- Card ---------- */
+
 .wrapper {
-    width: 500px;
-    height: 360px;
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+    width: 100%;
+    max-width: 460px;
+    min-height: 360px;
+    padding: 34px 40px 40px;
 
-    background: purple;
-    color: white;
+    color: var(--text);
+    border-radius: 18px;
+    box-shadow: 0 0 80px rgba(160, 32, 240, 0.22), 0 30px 60px rgba(0, 0, 0, 0.6);
 
-    border-radius: 15px;
-    padding: 30px 40px;
+    animation: cardIn 0.9s var(--ease) both;
+}
+
+/* the one memorable thing: a light that circles the card edge */
+.wrapper::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: 20px;
+    background: conic-gradient(from var(--angle),
+            transparent 0 55%,
+            var(--violet) 75%,
+            var(--lilac) 88%,
+            transparent 100%);
+    animation: spin 5s linear infinite;
+}
+
+.wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 18px;
+    background: var(--card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 .wrapper h1 {
-    font-size: 36px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
     text-align: center;
     margin-bottom: 20px;
+
+    color: var(--text);
+    background: linear-gradient(90deg, #ffffff, var(--lilac), #ffffff);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titleSweep 6s linear infinite;
 }
 
+/* single page-load sequence: children reveal in order */
+.wrapper form > * {
+    animation: reveal 0.7s var(--ease) both;
+    animation-delay: calc(0.25s + var(--i) * 0.1s);
+}
+
+/* ---------- Inputs ---------- */
 
 .input-box {
     position: relative;
     width: 100%;
-    height: 50px;
+    height: 52px;
     margin: 25px 0;
 }
 
 .input-box input {
     width: 100%;
     height: 100%;
+    padding: 0 50px 0 22px;
 
-    background: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(192, 132, 252, 0.22);
     outline: none;
-
     border-radius: 40px;
-    font-size: 16px;
-    color: white;
 
-    padding: 0 45px 0 20px;
+    font-size: 16px;
+    color: var(--text);
+    transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
 }
 
 .input-box input::placeholder {
-    color: wheat;
+    color: var(--muted);
+    transition: transform 0.3s var(--ease), opacity 0.3s;
 }
 
+.input-box input:focus {
+    background: rgba(160, 32, 240, 0.08);
+    border-color: var(--lilac);
+    box-shadow: 0 0 0 4px rgba(160, 32, 240, 0.18), 0 0 26px rgba(160, 32, 240, 0.35);
+}
 
-.input-box i {
+.input-box input:focus::placeholder {
+    opacity: 0.5;
+    transform: translateX(8px);
+}
+
+.input-box > i,
+.input-box .toggle {
     position: absolute;
     right: 20px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 20px;
+    color: var(--muted);
+    transition: color 0.3s, transform 0.3s var(--ease);
 }
 
+.input-box:focus-within > i,
+.input-box:focus-within .toggle {
+    color: var(--lilac);
+}
+
+.input-box:focus-within > i {
+    transform: translateY(-50%) scale(1.15);
+}
+
+.input-box .toggle {
+    right: 14px;
+    padding: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.input-box .toggle:hover {
+    color: #ffffff;
+}
+
+.input-box .toggle:focus-visible {
+    outline: 2px solid var(--lilac);
+    border-radius: 50%;
+}
+
+/* ---------- Button ---------- */
 
 .submit button {
+    position: relative;
+    overflow: hidden;
     width: 100%;
-    height: 45px;
+    height: 48px;
 
     border: none;
     outline: none;
-    border-radius: 10px;
+    border-radius: 12px;
 
     cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.04em;
+    color: #ffffff;
 
-    color: white;
+    background: linear-gradient(110deg, #4c0a82, #7b1fd1, #a020f0, #7b1fd1, #4c0a82);
+    background-size: 300% 100%;
+    box-shadow: 0 8px 24px rgba(160, 32, 240, 0.35);
 
-    animation: purpleShift 4s infinite linear;
+    animation: flow 6s linear infinite;
+    transition: transform 0.25s var(--ease), box-shadow 0.25s;
 }
 
-
-@keyframes purpleShift {
-    0%   { background: #6a0dad; }  
-    25%  { background: #8a2be2; }  
-    50%  { background: #a020f0; }  
-    75%  { background: #c084fc; }  
-    100% { background: #6a0dad; } 
+/* light sweep across the button on hover */
+.submit button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.7s var(--ease);
 }
 
 .submit button:hover {
-    background: #e6e6e6;
-    transform: scale(1.05);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 34px rgba(160, 32, 240, 0.6);
+}
+
+.submit button:hover::after {
+    left: 130%;
+}
+
+.submit button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.submit button:focus-visible {
+    box-shadow: 0 0 0 3px var(--void), 0 0 0 5px var(--lilac);
+}
+
+/* loading state (added by the script on submit) */
+.submit button.loading {
+    pointer-events: none;
+    color: transparent;
+}
+
+.submit button.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: rotate 0.7s linear infinite;
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes cardIn {
+    from { opacity: 0; transform: scale(0.94); filter: blur(10px); }
+    to   { opacity: 1; transform: scale(1);    filter: blur(0); }
+}
+
+@keyframes reveal {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    to { --angle: 360deg; }
+}
+
+@keyframes titleSweep {
+    to { background-position: -200% 0; }
+}
+
+@keyframes flow {
+    to { background-position: -300% 0; }
+}
+
+@keyframes rotate {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes driftA {
+    to { transform: translate(14vmax, 10vmax) scale(1.15); }
+}
+
+@keyframes driftB {
+    to { transform: translate(-12vmax, -8vmax) scale(1.1); }
+}
+
+/* ---------- Small screens / reduced motion ---------- */
+
+@media (max-width: 480px) {
+    .wrapper { padding: 28px 24px 32px; }
+    .wrapper h1 { font-size: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
